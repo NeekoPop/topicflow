@@ -566,8 +566,12 @@ if __name__ == '__main__':
     # Get port from environment or use default
     port = int(os.getenv('PORT', 5000))
     
+    # Check if running in production
+    is_production = os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('RENDER')
+    
     # Run the application
     print(f"Starting TopicFlow API on port {port}")
+    print(f"Environment: {'Production' if is_production else 'Development'}")
     print(f"Static files: {app.static_folder}")
     print(f"Templates: {app.template_folder}")
     
@@ -581,4 +585,5 @@ if __name__ == '__main__':
         print(f"❌ ERROR: {e}")
         print("The application will start but AI features will not work.")
     
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # Use debug=False in production
+    app.run(host='0.0.0.0', port=port, debug=not is_production)
