@@ -14,7 +14,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.1, 2.2, 11.3, 15.1, 15.2, 15.3, 15.4_
 
 - [ ] 2. Implement backend API foundation
-  - [-] 2.1 Create app.py with Flask/FastAPI application initialization
+  - [ ] 2.1 Create app.py with Flask/FastAPI application initialization
     - Initialize web framework (Flask or FastAPI)
     - Configure static file serving from static/ directory
     - Configure template rendering from templates/ directory
@@ -29,7 +29,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 11.1, 11.4_
 
 - [ ] 3. Implement Groq API client integration
-  - [-] 3.1 Create AI service client wrapper
+  - [ ] 3.1 Create AI service client wrapper
     - Initialize OpenAI client with Groq base URL (https://api.groq.com/openai/v1)
     - Implement generic AI service call function with model "llama-3.1-8b-instant"
     - Configure response_format parameter as {"type": "json_object"}
@@ -42,11 +42,11 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Test JSON response parsing
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-- [~] 4. Checkpoint - Verify backend foundation
+- [ ] 4. Checkpoint - Verify backend foundation
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Implement AI Summarizer backend endpoint
-  - [~] 5.1 Create POST /api/summarize endpoint
+  - [ ] 5.1 Create POST /api/summarize endpoint
     - Accept JSON payload with "material" field
     - Validate material input is non-empty
     - Construct system prompt for summarization
@@ -56,17 +56,17 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Handle errors (empty input, AI service failure)
     - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.7, 12.1, 12.2, 14.3_
   
-  - [~] 5.2 Write property test for API request structure
+  - [ ] 5.2 Write property test for API request structure
     - **Property 3: API Request Structure for Summarizer**
     - **Validates: Requirements 6.2**
     - Test that valid material inputs generate correct POST request structure
   
-  - [~] 5.3 Write property test for JSON response structure
+  - [ ] 5.3 Write property test for JSON response structure
     - **Property 4: Summarizer JSON Response Structure**
     - **Validates: Requirements 6.5**
     - Test that AI service responses (mocked) return valid JSON with "summary" field
   
-  - [~] 5.4 Write unit tests for summarizer endpoint
+  - [ ] 5.4 Write unit tests for summarizer endpoint
     - Test successful summarization with valid input
     - Test 400 error for empty material input
     - Test 500 error for AI service failure (mocked)
@@ -74,7 +74,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 6.3, 6.4, 6.5, 6.7, 12.1, 12.2_
 
 - [ ] 6. Implement AI Quiz Generator backend endpoint
-  - [~] 6.1 Create POST /api/quiz endpoint
+  - [ ] 6.1 Create POST /api/quiz endpoint
     - Accept JSON payload with "material" field
     - Validate material input is non-empty
     - Construct system prompt for quiz generation (exactly 5 questions, 4 choices each)
@@ -85,17 +85,17 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Handle errors (empty input, AI service failure, invalid response structure)
     - _Requirements: 7.2, 7.3, 7.4, 7.5, 7.8, 12.1, 12.2, 14.3_
   
-  - [~] 6.2 Write property test for API request structure
+  - [ ] 6.2 Write property test for API request structure
     - **Property 6: API Request Structure for Quiz Generator**
     - **Validates: Requirements 7.2**
     - Test that valid material inputs generate correct POST request structure
   
-  - [~] 6.3 Write property test for JSON response structure
+  - [ ] 6.3 Write property test for JSON response structure
     - **Property 7: Quiz JSON Response Structure**
     - **Validates: Requirements 7.5**
     - Test that AI service responses (mocked) return valid JSON with "questions" array containing required fields
   
-  - [~] 6.4 Write unit tests for quiz endpoint
+  - [ ] 6.4 Write unit tests for quiz endpoint
     - Test successful quiz generation with valid input
     - Test 400 error for empty material input
     - Test 500 error for AI service failure (mocked)
@@ -104,7 +104,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 7.3, 7.4, 7.5, 7.8, 12.1, 12.2_
 
 - [ ] 7. Implement AI Flashcard Maker backend endpoint
-  - [~] 7.1 Create POST /api/flashcard endpoint
+  - [ ] 7.1 Create POST /api/flashcard endpoint
     - Accept JSON payload with "material" field
     - Validate material input is non-empty
     - Construct system prompt for flashcard generation
@@ -115,28 +115,28 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Handle errors (empty input, AI service failure, invalid response structure)
     - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.7, 12.1, 12.2, 14.3_
   
-  - [~] 7.2 Write property test for API request structure
+  - [ ] 7.2 Write property test for API request structure
     - **Property 9: API Request Structure for Flashcard Maker**
     - **Validates: Requirements 8.2**
     - Test that valid material inputs generate correct POST request structure
   
-  - [~] 7.3 Write property test for JSON response structure
+  - [ ] 7.3 Write property test for JSON response structure
     - **Property 10: Flashcard JSON Response Structure**
     - **Validates: Requirements 8.5**
     - Test that AI service responses (mocked) return valid JSON with "flashcards" array containing term and definition fields
   
-  - [~] 7.4 Write unit tests for flashcard endpoint
+  - [ ] 7.4 Write unit tests for flashcard endpoint
     - Test successful flashcard generation with valid input
     - Test 400 error for empty material input
     - Test 500 error for AI service failure (mocked)
     - Test JSON response format with flashcards array
     - _Requirements: 8.3, 8.4, 8.5, 8.7, 12.1, 12.2_
 
-- [~] 8. Checkpoint - Verify all backend endpoints
+- [ ] 8. Checkpoint - Verify all backend endpoints
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Create frontend HTML structure
-  - [~] 9.1 Create templates/index.html with base structure
+  - [ ] 9.1 Create templates/index.html with base structure
     - Add HTML5 doctype and meta tags
     - Include Tailwind CSS CDN link
     - Create tab navigation structure (Material Input, Summarizer, Quiz, Flashcard, About)
@@ -150,20 +150,20 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 3.1, 3.3, 4.1, 4.2, 4.3, 5.1, 5.2, 6.1, 7.1, 8.1, 9.1, 9.2, 9.3, 9.4, 9.5, 13.1, 13.2_
 
 - [ ] 10. Implement frontend tab navigation
-  - [~] 10.1 Create tab switching logic in static/js/main.js
+  - [ ] 10.1 Create tab switching logic in static/js/main.js
     - Implement switchTab() function to show/hide content panels
     - Add event listeners to tab buttons
     - Apply active tab styling
     - Ensure only one panel visible at a time
     - _Requirements: 5.2, 5.3, 5.4, 5.5_
   
-  - [~] 10.2 Write property test for tab navigation exclusivity
+  - [ ] 10.2 Write property test for tab navigation exclusivity
     - **Property 2: Tab Navigation Exclusivity and State**
     - **Validates: Requirements 5.2, 5.3, 5.4**
     - Test that selecting any tab shows only that panel and hides others
 
 - [ ] 11. Implement input validation and button state management
-  - [~] 11.1 Create input validation logic
+  - [ ] 11.1 Create input validation logic
     - Implement updateButtonState() function to enable/disable submit buttons
     - Add event listener to material input textarea for input changes
     - Validate input is non-empty and not whitespace-only
@@ -171,13 +171,13 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Enable buttons when input is valid
     - _Requirements: 4.4, 14.2_
   
-  - [~] 11.2 Write property test for input validation
+  - [ ] 11.2 Write property test for input validation
     - **Property 1: Input Validation Controls Button State**
     - **Validates: Requirements 4.4**
     - Test that button state correctly reflects input validity for any input
 
 - [ ] 12. Implement AI Summarizer frontend
-  - [~] 12.1 Create summarizer API call and result rendering
+  - [ ] 12.1 Create summarizer API call and result rendering
     - Implement submitSummarizer() function to call /api/summarize
     - Show loading indicator during API call
     - Parse JSON response and extract summary
@@ -186,12 +186,12 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Hide loading indicator on completion
     - _Requirements: 6.1, 6.2, 6.6, 12.3, 12.4, 14.1, 14.4, 14.5_
   
-  - [~] 12.2 Write property test for summary display formatting
+  - [ ] 12.2 Write property test for summary display formatting
     - **Property 5: Summary Display Formatting**
     - **Validates: Requirements 6.6**
     - Test that any summary text is rendered in bulleted format
   
-  - [~] 12.3 Write unit tests for summarizer frontend
+  - [ ] 12.3 Write unit tests for summarizer frontend
     - Test API call with valid input
     - Test loading indicator display
     - Test error message display on network failure
@@ -199,7 +199,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 6.1, 6.2, 6.6, 14.1, 14.4, 14.5_
 
 - [ ] 13. Implement AI Quiz Generator frontend
-  - [~] 13.1 Create quiz API call and result rendering
+  - [ ] 13.1 Create quiz API call and result rendering
     - Implement submitQuiz() function to call /api/quiz
     - Show loading indicator during API call
     - Parse JSON response and extract questions array
@@ -211,12 +211,12 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Hide loading indicator on completion
     - _Requirements: 7.1, 7.2, 7.6, 7.7, 12.3, 12.4, 14.1, 14.4, 14.5_
   
-  - [~] 13.2 Write property test for quiz display and interaction
+  - [ ] 13.2 Write property test for quiz display and interaction
     - **Property 8: Quiz Display and Interaction**
     - **Validates: Requirements 7.6, 7.7**
     - Test that any quiz response data renders correctly with interactive answer selection
   
-  - [~] 13.3 Write unit tests for quiz frontend
+  - [ ] 13.3 Write unit tests for quiz frontend
     - Test API call with valid input
     - Test loading indicator display
     - Test error message display on network failure
@@ -226,7 +226,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 7.1, 7.2, 7.6, 7.7, 14.1, 14.4, 14.5_
 
 - [ ] 14. Implement AI Flashcard Maker frontend
-  - [~] 14.1 Create flashcard API call and result rendering
+  - [ ] 14.1 Create flashcard API call and result rendering
     - Implement submitFlashcard() function to call /api/flashcard
     - Show loading indicator during API call
     - Parse JSON response and extract flashcards array
@@ -236,12 +236,12 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Hide loading indicator on completion
     - _Requirements: 8.1, 8.2, 8.6, 12.3, 12.4, 14.1, 14.4, 14.5_
   
-  - [~] 14.2 Write property test for flashcard flip interaction
+  - [ ] 14.2 Write property test for flashcard flip interaction
     - **Property 11: Flashcard Flip Interaction**
     - **Validates: Requirements 8.6**
     - Test that clicking any flashcard toggles between term and definition
   
-  - [~] 14.3 Write unit tests for flashcard frontend
+  - [ ] 14.3 Write unit tests for flashcard frontend
     - Test API call with valid input
     - Test loading indicator display
     - Test error message display on network failure
@@ -250,7 +250,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 8.1, 8.2, 8.6, 14.1, 14.4, 14.5_
 
 - [ ] 15. Implement responsive design with Tailwind CSS
-  - [~] 15.1 Add Tailwind CSS utility classes for responsive layout
+  - [ ] 15.1 Add Tailwind CSS utility classes for responsive layout
     - Apply responsive classes to tab navigation
     - Apply responsive classes to material input textarea
     - Apply responsive classes to result containers
@@ -259,7 +259,7 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - _Requirements: 3.3, 13.1, 13.2, 13.3, 13.4_
 
 - [ ] 16. Implement comprehensive error handling
-  - [~] 16.1 Add frontend error handling utilities
+  - [ ] 16.1 Add frontend error handling utilities
     - Create showError() function to display error messages
     - Create hideError() function to clear error messages
     - Add error handling for network failures
@@ -267,45 +267,45 @@ This implementation plan breaks down the TopicFlow application into discrete cod
     - Add error handling for empty API responses
     - _Requirements: 14.1, 14.2, 14.3, 12.4_
   
-  - [~] 16.2 Write property test for error display
+  - [ ] 16.2 Write property test for error display
     - **Property 15: Error Display on API Failure**
     - **Validates: Requirements 14.1**
     - Test that any API error response displays an error message
   
-  - [~] 16.3 Write property test for loading indicator lifecycle
+  - [ ] 16.3 Write property test for loading indicator lifecycle
     - **Property 16: Loading Indicator Lifecycle**
     - **Validates: Requirements 14.4, 14.5**
     - Test that loading indicator is shown on request start and hidden on completion
 
 - [ ] 17. Integration testing and end-to-end validation
-  - [~] 17.1 Write integration tests for complete user flows
+  - [ ] 17.1 Write integration tests for complete user flows
     - Test complete summarizer flow (input → submit → display)
     - Test complete quiz flow (input → submit → display → interaction)
     - Test complete flashcard flow (input → submit → display → flip)
     - Test error flows for each feature
     - _Requirements: 6.1, 6.2, 6.6, 7.1, 7.2, 7.6, 7.7, 8.1, 8.2, 8.6_
   
-  - [~] 17.2 Write property test for AI service configuration consistency
+  - [ ] 17.2 Write property test for AI service configuration consistency
     - **Property 12: AI Service Configuration Consistency**
     - **Validates: Requirements 10.3, 10.4**
     - Test that all AI service calls use correct model and response format
   
-  - [~] 17.3 Write property test for JSON response headers
+  - [ ] 17.3 Write property test for JSON response headers
     - **Property 13: JSON Response Content-Type Header**
     - **Validates: Requirements 12.1**
     - Test that all successful API responses include correct Content-Type header
   
-  - [~] 17.4 Write property test for JSON serialization round-trip
+  - [ ] 17.4 Write property test for JSON serialization round-trip
     - **Property 14: JSON Serialization Round-Trip**
     - **Validates: Requirements 12.2**
     - Test that any response data structure preserves all fields through JSON serialization
   
-  - [~] 17.5 Write property test for AI service error handling
+  - [ ] 17.5 Write property test for AI service error handling
     - **Property 17: AI Service Error Handling**
     - **Validates: Requirements 6.7, 7.8, 8.7**
     - Test that all endpoints return 500 status with error message when AI service fails
 
-- [~] 18. Final checkpoint and documentation
+- [ ] 18. Final checkpoint and documentation
   - Ensure all tests pass, ask the user if questions arise.
   - Verify .env file is excluded from git
   - Verify no hardcoded API keys in source code
