@@ -8,6 +8,9 @@ import os
 import json
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
+import PyPDF2
+import io
 
 # Load environment variables from .env file
 load_dotenv()
@@ -29,6 +32,43 @@ app = Flask(__name__,
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
 app.config['JSON_SORT_KEYS'] = False  # Keep JSON response order as defined
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['UPLOAD_EXTENSIONS'] = {'.pdf'}
+
+def extract_text_from_pdf(pdf_file) -> str:
+    """
+    Extract text content from PDF file.
+    
+    Args:
+        pdf_file: File object from request.files
+        
+    Returns:
+        str: Extracted text from PDF
+        
+    Raises:
+        Exception: If PDF extraction fails
+    """
+    try:
+        # Read PDF file
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        
+        # Extract text from all pages
+        text_content = []
+        for page in pdf_reader.pages:
+            text = page.extract_text()
+            if text:
+                text_content.append(text)
+        
+        # Combine all pages
+        full_text = '\n'.join(text_content)
+        
+        if not full_text.strip():
+            raise Exception("PDF appears to be empty or contains only images")
+        
+        return full_text.strip()
+        
+    except Exception as e:
+        raise Exception(f"Failed to extract text from PDF: {str(e)}")
 
 # API Key Management
 def load_api_key() -> str:
@@ -181,15 +221,15 @@ def serve_static(path):
     """Serve static files from the static directory."""
     return send_from_directory('static', path)
 
-@app.route('/api/summarize', methods=['POST'])
+@app.route('/api/summarize', methods=['POST', 'OPTIONS'])
 def summarize():
     """
     Summarize study material using AI.
+    Supports both text input and PDF file upload.
     
-    Request JSON:
-        {
-            "material": "string (study material text)"
-        }
+    Request (Form Data or JSON):
+        - For text: {"material": "string (study material text)"}
+        - For PDF: multipart/form-data with 'pdf_file' field
     
     Response JSON:
         {
@@ -197,16 +237,47 @@ def summarize():
         }
     
     Error Responses:
-        400: Missing or empty material
+        400: Missing or empty material, invalid file
         500: AI service error or API key issues
     """
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+    
+    print(f"DEBUG: Received {request.method} request to /api/summarize")
+    print(f"DEBUG: Content-Type: {request.content_type}")
+    print(f"DEBUG: Files: {list(request.files.keys())}")
+    
     try:
-        # Get material from request
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request body must be JSON'}), 400
+        material = ''
         
-        material = data.get('material', '').strip()
+        # Check if PDF file was uploaded
+        if 'pdf_file' in request.files:
+            pdf_file = request.files['pdf_file']
+            
+            # Validate file
+            if pdf_file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            # Check file extension
+            if not pdf_file.filename.lower().endswith('.pdf'):
+                return jsonify({'error': 'Only PDF files are supported'}), 400
+            
+            # Extract text from PDF
+            try:
+                material = extract_text_from_pdf(pdf_file)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 400
+        
+        # If no PDF, check for text material
+        else:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Request body must be JSON or include a PDF file'}), 400
+            
+            material = data.get('material', '').strip()
+        
+        # Validate material
         if not material:
             return jsonify({'error': 'Material input is required and cannot be empty'}), 400
         
@@ -275,20 +346,22 @@ Example response format:
         # Format as bullet points
         formatted_summary = '\n'.join([f'• {point}' for point in points if point])
         
+        print(f"DEBUG: Returning summary with {len(points)} points")  # Debug log
+        
         return jsonify({'summary': formatted_summary}), 200
         
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
-@app.route('/api/quiz', methods=['POST'])
+@app.route('/api/quiz', methods=['POST', 'OPTIONS'])
 def quiz():
     """
     Generate quiz questions from study material using AI.
+    Supports both text input and PDF file upload.
     
-    Request JSON:
-        {
-            "material": "string (study material text)"
-        }
+    Request (Form Data or JSON):
+        - For text: {"material": "string (study material text)"}
+        - For PDF: multipart/form-data with 'pdf_file' field
     
     Response JSON:
         {
@@ -303,16 +376,47 @@ def quiz():
         }
     
     Error Responses:
-        400: Missing or empty material
+        400: Missing or empty material, invalid file
         500: AI service error or API key issues
     """
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+    
+    print(f"DEBUG: Received {request.method} request to /api/quiz")
+    print(f"DEBUG: Content-Type: {request.content_type}")
+    print(f"DEBUG: Files: {list(request.files.keys())}")
+    
     try:
-        # Get material from request
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request body must be JSON'}), 400
+        material = ''
         
-        material = data.get('material', '').strip()
+        # Check if PDF file was uploaded
+        if 'pdf_file' in request.files:
+            pdf_file = request.files['pdf_file']
+            
+            # Validate file
+            if pdf_file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            # Check file extension
+            if not pdf_file.filename.lower().endswith('.pdf'):
+                return jsonify({'error': 'Only PDF files are supported'}), 400
+            
+            # Extract text from PDF
+            try:
+                material = extract_text_from_pdf(pdf_file)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 400
+        
+        # If no PDF, check for text material
+        else:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Request body must be JSON or include a PDF file'}), 400
+            
+            material = data.get('material', '').strip()
+        
+        # Validate material
         if not material:
             return jsonify({'error': 'Material input is required and cannot be empty'}), 400
         
@@ -385,15 +489,15 @@ Requirements:
     except Exception as e:
         return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
 
-@app.route('/api/flashcard', methods=['POST'])
+@app.route('/api/flashcard', methods=['POST', 'OPTIONS'])
 def flashcard():
     """
     Generate flashcards from study material using AI.
+    Supports both text input and PDF file upload.
     
-    Request JSON:
-        {
-            "material": "string (study material text)"
-        }
+    Request (Form Data or JSON):
+        - For text: {"material": "string (study material text)"}
+        - For PDF: multipart/form-data with 'pdf_file' field
     
     Response JSON:
         {
@@ -406,16 +510,47 @@ def flashcard():
         }
     
     Error Responses:
-        400: Missing or empty material
+        400: Missing or empty material, invalid file
         500: AI service error or API key issues
     """
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+    
+    print(f"DEBUG: Received {request.method} request to /api/flashcard")
+    print(f"DEBUG: Content-Type: {request.content_type}")
+    print(f"DEBUG: Files: {list(request.files.keys())}")
+    
     try:
-        # Get material from request
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'Request body must be JSON'}), 400
+        material = ''
         
-        material = data.get('material', '').strip()
+        # Check if PDF file was uploaded
+        if 'pdf_file' in request.files:
+            pdf_file = request.files['pdf_file']
+            
+            # Validate file
+            if pdf_file.filename == '':
+                return jsonify({'error': 'No file selected'}), 400
+            
+            # Check file extension
+            if not pdf_file.filename.lower().endswith('.pdf'):
+                return jsonify({'error': 'Only PDF files are supported'}), 400
+            
+            # Extract text from PDF
+            try:
+                material = extract_text_from_pdf(pdf_file)
+            except Exception as e:
+                return jsonify({'error': str(e)}), 400
+        
+        # If no PDF, check for text material
+        else:
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'Request body must be JSON or include a PDF file'}), 400
+            
+            material = data.get('material', '').strip()
+        
+        # Validate material
         if not material:
             return jsonify({'error': 'Material input is required and cannot be empty'}), 400
         

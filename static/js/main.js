@@ -4,6 +4,78 @@
 console.log('TopicFlow JavaScript loaded');
 
 // ============================================================================
+// PDF Upload Handling
+// ============================================================================
+
+// Store uploaded PDF file
+let uploadedPdfFile = null;
+
+/**
+ * Handle PDF file upload
+ * @param {Event} event - File input change event
+ */
+function handlePdfUpload(event) {
+    const file = event.target.files[0];
+    
+    if (!file) {
+        return;
+    }
+    
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showNotification('✗ Only PDF files are supported', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Validate file size (16MB max)
+    const maxSize = 16 * 1024 * 1024; // 16MB in bytes
+    if (file.size > maxSize) {
+        showNotification('✗ File size exceeds 16MB limit', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Store the file
+    uploadedPdfFile = file;
+    
+    // Update UI
+    document.getElementById('pdf-filename').classList.remove('hidden');
+    document.getElementById('pdf-name').textContent = file.name;
+    document.getElementById('clear-pdf-btn').classList.remove('hidden');
+    
+    // Clear text input when PDF is uploaded
+    const materialInput = document.getElementById('material-input');
+    materialInput.value = '';
+    materialInput.placeholder = 'PDF file selected. You can also add additional text here...';
+    
+    // Enable buttons
+    updateButtonState();
+    
+    showNotification('✓ PDF file loaded successfully!');
+}
+
+/**
+ * Clear PDF upload
+ */
+function clearPdfUpload() {
+    uploadedPdfFile = null;
+    
+    const fileInput = document.getElementById('pdf-upload');
+    fileInput.value = '';
+    
+    document.getElementById('pdf-filename').classList.add('hidden');
+    document.getElementById('clear-pdf-btn').classList.add('hidden');
+    
+    const materialInput = document.getElementById('material-input');
+    materialInput.placeholder = 'Enter your study material here... (e.g., lecture notes, textbook excerpts, study guides) OR upload a PDF file above';
+    
+    updateButtonState();
+    
+    showNotification('✓ PDF file cleared');
+}
+
+// ============================================================================
 // Tab Navigation System
 // ============================================================================
 
@@ -50,7 +122,8 @@ function switchTab(tabName) {
 function updateButtonState() {
     const materialInput = document.getElementById('material-input');
     const material = materialInput.value.trim();
-    const isValid = material.length > 0;
+    const hasPdf = uploadedPdfFile !== null;
+    const isValid = material.length > 0 || hasPdf;
 
     // Update all submit buttons
     const buttons = [
@@ -72,7 +145,11 @@ function updateButtonState() {
     // Update character count
     const charCount = document.getElementById('char-count');
     if (charCount) {
-        charCount.textContent = materialInput.value.length;
+        if (hasPdf) {
+            charCount.textContent = `PDF: ${uploadedPdfFile.name}`;
+        } else {
+            charCount.textContent = materialInput.value.length;
+        }
     }
 }
 
@@ -84,23 +161,75 @@ function updateButtonState() {
  * Make API call to backend
  * @param {string} endpoint - API endpoint path
  * @param {object} data - Data to send
+ * @param {File} file - Optional file to upload
  * @returns {Promise<object>} - Response data
  */
-async function callAPI(endpoint, data) {
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    });
+async function callAPI(endpoint, data, file = null) {
+    console.log('callAPI called:', { endpoint, hasFile: !!file, data });
+    
+    let response;
+    
+    try {
+        if (file) {
+            console.log('Preparing FormData with file:', file.name);
+            // Use FormData for file upload
+            const formData = new FormData();
+            formData.append('pdf_file', file);
+            
+            // Add any additional text data if present
+            if (data && data.material) {
+                formData.append('material', data.material);
+            }
+            
+            console.log('Sending POST request with FormData to:', endpoint);
+            response = await fetch(endpoint, {
+                method: 'POST',
+                body: formData
+            });
+        } else {
+            console.log('Sending POST request with JSON to:', endpoint);
+            // Use JSON for regular requests
+            response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+        }
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP ${response.status}`);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
+        // Read response body once
+        const responseText = await response.text();
+        console.log('Response text length:', responseText.length);
+        
+        if (!response.ok) {
+            // Try to parse error as JSON
+            let errorMessage;
+            try {
+                const errorData = JSON.parse(responseText);
+                errorMessage = errorData.error || `HTTP ${response.status}`;
+            } catch (e) {
+                // If JSON parsing fails, use text
+                errorMessage = responseText || `HTTP ${response.status}`;
+            }
+            throw new Error(errorMessage);
+        }
+
+        // Try to parse response as JSON
+        try {
+            return JSON.parse(responseText);
+        } catch (e) {
+            console.error('Failed to parse JSON response:', e);
+            console.error('Response text:', responseText);
+            throw new Error('Invalid JSON response from server. Check console for details.');
+        }
+    } catch (error) {
+        console.error('API call error:', error);
+        throw error;
     }
-
-    return await response.json();
 }
 
 /**
@@ -161,18 +290,36 @@ function showResults(feature) {
  * Submit material to the summarizer API
  */
 async function submitSummarizer() {
+    console.log('submitSummarizer called');
+    
     const materialInput = document.getElementById('material-input');
     const material = materialInput.value.trim();
 
-    if (!material) {
-        showError('summarizer', 'Please enter study material before submitting.');
+    console.log('Material length:', material.length);
+    console.log('Uploaded PDF:', uploadedPdfFile);
+
+    // Check if we have either text or PDF
+    if (!material && !uploadedPdfFile) {
+        showError('summarizer', 'Please enter study material or upload a PDF file before submitting.');
         return;
     }
 
     try {
         showLoading('summarizer');
         
-        const data = await callAPI('/api/summarize', { material });
+        let data;
+        
+        console.log('Calling API with PDF:', !!uploadedPdfFile);
+        
+        // If PDF is uploaded, use file upload
+        if (uploadedPdfFile) {
+            console.log('Using PDF upload mode');
+            data = await callAPI('/api/summarize', { material }, uploadedPdfFile);
+        } else {
+            // Otherwise use text input
+            console.log('Using text input mode');
+            data = await callAPI('/api/summarize', { material });
+        }
         
         console.log('Summarizer response:', data); // Debug log
         
@@ -183,8 +330,12 @@ async function submitSummarizer() {
             renderSummary(data.summary);
             
             // Save to history
+            const historyMaterial = uploadedPdfFile 
+                ? `PDF: ${uploadedPdfFile.name}` 
+                : material.substring(0, 100) + '...';
+            
             saveToHistory('summary', {
-                material: material.substring(0, 100) + '...',
+                material: historyMaterial,
                 result: data.summary,
                 timestamp: new Date().toISOString()
             });
@@ -590,15 +741,24 @@ async function submitQuiz() {
     const materialInput = document.getElementById('material-input');
     const material = materialInput.value.trim();
 
-    if (!material) {
-        showError('quiz', 'Please enter study material before submitting.');
+    // Check if we have either text or PDF
+    if (!material && !uploadedPdfFile) {
+        showError('quiz', 'Please enter study material or upload a PDF file before submitting.');
         return;
     }
 
     try {
         showLoading('quiz');
         
-        const data = await callAPI('/api/quiz', { material });
+        let data;
+        
+        // If PDF is uploaded, use file upload
+        if (uploadedPdfFile) {
+            data = await callAPI('/api/quiz', { material }, uploadedPdfFile);
+        } else {
+            // Otherwise use text input
+            data = await callAPI('/api/quiz', { material });
+        }
         
         hideLoading('quiz');
         
@@ -740,15 +900,24 @@ async function submitFlashcard() {
     const materialInput = document.getElementById('material-input');
     const material = materialInput.value.trim();
 
-    if (!material) {
-        showError('flashcard', 'Please enter study material before submitting.');
+    // Check if we have either text or PDF
+    if (!material && !uploadedPdfFile) {
+        showError('flashcard', 'Please enter study material or upload a PDF file before submitting.');
         return;
     }
 
     try {
         showLoading('flashcard');
         
-        const data = await callAPI('/api/flashcard', { material });
+        let data;
+        
+        // If PDF is uploaded, use file upload
+        if (uploadedPdfFile) {
+            data = await callAPI('/api/flashcard', { material }, uploadedPdfFile);
+        } else {
+            // Otherwise use text input
+            data = await callAPI('/api/flashcard', { material });
+        }
         
         hideLoading('flashcard');
         
@@ -927,10 +1096,22 @@ function toggleDarkMode() {
  */
 function loadDarkModePreference() {
     const darkMode = localStorage.getItem('darkMode');
-    if (darkMode === 'enabled') {
+    
+    // Default to dark mode if no preference is set
+    if (darkMode === null || darkMode === 'enabled') {
         document.body.classList.add('dark-mode');
         const icon = document.getElementById('dark-mode-icon');
         if (icon) icon.textContent = '☀️';
+        
+        // Save default preference if not set
+        if (darkMode === null) {
+            localStorage.setItem('darkMode', 'enabled');
+        }
+    } else {
+        // Light mode
+        document.body.classList.remove('dark-mode');
+        const icon = document.getElementById('dark-mode-icon');
+        if (icon) icon.textContent = '🌙';
     }
 }
 

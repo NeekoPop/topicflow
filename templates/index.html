@@ -181,9 +181,18 @@
         body.dark-mode #logo-underline {
             background: linear-gradient(to right, #60a5fa, #a78bfa) !important;
         }
+        /* Smooth horizontal scroll for mobile tab navigation */
+        nav .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        nav .overflow-x-auto::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
+<body class="dark-mode bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-6xl">
         <!-- Header -->
         <header class="text-center mb-8 md:mb-12">
@@ -204,7 +213,7 @@
                 </div>
                 <div class="flex-1 flex justify-end">
                     <button onclick="toggleDarkMode()" id="dark-mode-toggle" class="p-2 md:p-3 rounded-lg bg-gray-200 hover:bg-gray-300 transition-all" title="Toggle Dark Mode">
-                        <span id="dark-mode-icon">🌙</span>
+                        <span id="dark-mode-icon">☀️</span>
                     </button>
                 </div>
             </div>
@@ -214,22 +223,24 @@
         
         <!-- Tab Navigation -->
         <nav class="mb-6 md:mb-8">
-            <div class="flex flex-wrap justify-center gap-1 md:gap-2 bg-white rounded-lg shadow-md p-1 md:p-2">
-                <button onclick="switchTab('material')" id="tab-material" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 bg-blue-600 text-white">
-                    📝 <span data-i18n="materialInput" class="hidden sm:inline">Material Input</span><span class="sm:hidden">Input</span>
-                </button>
-                <button onclick="switchTab('summarizer')" id="tab-summarizer" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
-                    📋 <span data-i18n="summarizer" class="hidden sm:inline">Summarizer</span><span class="sm:hidden">Summary</span>
-                </button>
-                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
-                    ❓ <span data-i18n="quiz" class="hidden sm:inline">Quiz Generator</span><span class="sm:hidden">Quiz</span>
-                </button>
-                <button onclick="switchTab('flashcard')" id="tab-flashcard" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
-                    🎴 <span data-i18n="flashcard">Flashcards</span>
-                </button>
-                <button onclick="switchTab('about')" id="tab-about" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
-                    ℹ️ <span data-i18n="about">About</span>
-                </button>
+            <div class="bg-white rounded-lg shadow-md p-1 md:p-2 overflow-x-auto">
+                <div class="flex gap-1 md:gap-2 min-w-max md:min-w-0 md:flex-wrap md:justify-center">
+                    <button onclick="switchTab('material')" id="tab-material" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 bg-blue-600 text-white whitespace-nowrap">
+                        📝 <span data-i18n="materialInput" class="hidden sm:inline">Material Input</span><span class="sm:hidden">Input</span>
+                    </button>
+                    <button onclick="switchTab('summarizer')" id="tab-summarizer" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                        📋 <span data-i18n="summarizer" class="hidden sm:inline">Summarizer</span><span class="sm:hidden">Summary</span>
+                    </button>
+                    <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                        ❓ <span data-i18n="quiz" class="hidden sm:inline">Quiz Generator</span><span class="sm:hidden">Quiz</span>
+                    </button>
+                    <button onclick="switchTab('flashcard')" id="tab-flashcard" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                        🎴 <span data-i18n="flashcard">Flashcards</span>
+                    </button>
+                    <button onclick="switchTab('about')" id="tab-about" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100 whitespace-nowrap">
+                        ℹ️ <span data-i18n="about">About</span>
+                    </button>
+                </div>
             </div>
         </nav>
 
@@ -242,17 +253,50 @@
                         <span class="text-3xl md:text-4xl mr-2 md:mr-3">📝</span>
                         <span class="text-lg md:text-3xl">Enter Your Study Material</span>
                     </h2>
-                    <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">Paste or type your study material below. This will be used to generate summaries, quizzes, and flashcards.</p>
+                    <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">Paste or type your study material below, or upload a PDF file. This will be used to generate summaries, quizzes, and flashcards.</p>
                     
+                    <!-- PDF Upload Section -->
+                    <div class="mb-4 md:mb-6 bg-blue-50 dark:bg-gray-700 rounded-lg p-4 border-2 border-dashed border-blue-300 dark:border-blue-600">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                📄 Upload PDF File (Optional)
+                            </label>
+                            <button 
+                                onclick="clearPdfUpload()" 
+                                id="clear-pdf-btn"
+                                class="hidden text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium">
+                                ✕ Clear
+                            </button>
+                        </div>
+                        <input 
+                            type="file" 
+                            id="pdf-upload" 
+                            accept=".pdf"
+                            class="hidden"
+                            onchange="handlePdfUpload(event)"
+                        />
+                        <button 
+                            onclick="document.getElementById('pdf-upload').click()" 
+                            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg text-sm md:text-base font-medium hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-2">
+                            <span>📁</span> Choose PDF File
+                        </button>
+                        <p id="pdf-filename" class="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-2 hidden">
+                            Selected: <span id="pdf-name" class="font-medium"></span>
+                        </p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            Maximum file size: 16MB
+                        </p>
+                    </div>
+
                     <div class="mb-4 md:mb-6">
-                        <label for="material-input" class="block text-sm font-medium text-gray-700 mb-2">
-                            Study Material
+                        <label for="material-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Study Material (Text)
                         </label>
                         <textarea 
                             id="material-input" 
                             rows="8"
                             class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm md:text-base"
-                            placeholder="Enter your study material here... (e.g., lecture notes, textbook excerpts, study guides)"
+                            placeholder="Enter your study material here... (e.g., lecture notes, textbook excerpts, study guides) OR upload a PDF file above"
                         ></textarea>
                         <p class="text-xs md:text-sm text-gray-500 mt-2">
                             <span id="char-count">0</span> characters

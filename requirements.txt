@@ -13,6 +13,9 @@ openai>=1.0.0
 # Production Server
 gunicorn==21.2.0
 
+# PDF Processing
+PyPDF2==3.0.1
+
 # Development dependencies (optional)
 pytest==7.4.4
 hypothesis==6.92.6  # For property-based testing
