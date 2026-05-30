@@ -1066,7 +1066,8 @@ function applyLanguage(lang) {
  * Load language preference
  */
 function loadLanguagePreference() {
-    const lang = localStorage.getItem('language') || 'en';
+    // Default to Indonesian if no preference is set
+    const lang = localStorage.getItem('language') || 'id';
     applyLanguage(lang);
 }
 
