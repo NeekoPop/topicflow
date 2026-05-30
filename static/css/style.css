@@ -1,0 +1,61 @@
+/* TopicFlow - Main CSS File */
+/* This file will contain Tailwind CSS customizations and additional styles */
+
+/* Custom styles for TopicFlow application */
+:root {
+    --primary-color: #3b82f6;
+    --secondary-color: #10b981;
+    --accent-color: #8b5cf6;
+}
+
+/* Custom utility classes */
+.flashcard {
+    perspective: 1000px;
+}
+
+.flashcard-inner {
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+    backface-visibility: hidden;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.flashcard-back {
+    transform: rotateY(180deg);
+}
+
+/* Loading animation */
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .tab-navigation {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}

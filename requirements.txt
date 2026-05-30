@@ -1,0 +1,18 @@
+# TopicFlow Educational Assistant - Python Dependencies
+# Generated for Task 1: Project Structure and Environment Configuration
+
+# Web Framework - Using Flask as specified in requirements
+Flask==3.0.0
+
+# Environment Variable Management
+python-dotenv==1.0.0
+
+# OpenAI/Groq API Client - Updated to latest stable version
+openai>=1.0.0
+
+# Production Server
+gunicorn==21.2.0
+
+# Development dependencies (optional)
+pytest==7.4.4
+hypothesis==6.92.6  # For property-based testing

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TopicFlow - AI Educational Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* Custom animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Flashcard flip animation */
+        .flashcard {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 0.5rem;
+        }
+        .flashcard-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .flashcard-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        /* Quiz answer states */
+        .answer-choice {
+            transition: all 0.3s ease;
+        }
+        .answer-choice:hover:not(.selected):not(.correct):not(.incorrect) {
+            background-color: #f3f4f6;
+            transform: translateX(4px);
+        }
+        .answer-choice.selected {
+            background-color: #dbeafe;
+            border-color: #3b82f6;
+        }
+        .answer-choice.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+        }
+        .answer-choice.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+        
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: linear-gradient(to bottom right, #1a202c, #2d3748, #1a202c);
+            color: #e2e8f0;
+        }
+        body.dark-mode .bg-white {
+            background-color: #2d3748 !important;
+        }
+        body.dark-mode .text-gray-800 {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .text-gray-600 {
+            color: #cbd5e0 !important;
+        }
+        body.dark-mode .text-gray-700 {
+            color: #e2e8f0 !important;
+        }
+        body.dark-mode .text-gray-500 {
+            color: #a0aec0 !important;
+        }
+        body.dark-mode .bg-gray-50 {
+            background-color: #374151 !important;
+        }
+        body.dark-mode .bg-gray-100 {
+            background-color: #4a5568 !important;
+        }
+        body.dark-mode .bg-gray-200 {
+            background-color: #4a5568 !important;
+        }
+        body.dark-mode .border-gray-200 {
+            border-color: #4a5568 !important;
+        }
+        body.dark-mode .border-gray-300 {
+            border-color: #4a5568 !important;
+        }
+        body.dark-mode textarea {
+            background-color: #374151 !important;
+            color: #e2e8f0 !important;
+            border-color: #4a5568 !important;
+        }
+        body.dark-mode .tab-button {
+            color: #cbd5e0 !important;
+        }
+        body.dark-mode .tab-button:hover {
+            background-color: #4a5568 !important;
+        }
+        /* Fix for gradient backgrounds in dark mode */
+        body.dark-mode .bg-gradient-to-r {
+            background: #374151 !important;
+        }
+        body.dark-mode .from-blue-50 {
+            background-color: #374151 !important;
+        }
+        body.dark-mode .to-purple-50 {
+            background-color: #374151 !important;
+        }
+        /* Fix for blue/yellow backgrounds in dark mode */
+        body.dark-mode .bg-blue-50 {
+            background-color: #1e3a5f !important;
+        }
+        body.dark-mode .text-blue-900 {
+            color: #93c5fd !important;
+        }
+        body.dark-mode .text-blue-800 {
+            color: #bfdbfe !important;
+        }
+        body.dark-mode .text-blue-700 {
+            color: #dbeafe !important;
+        }
+        body.dark-mode .bg-yellow-50 {
+            background-color: #78350f !important;
+        }
+        body.dark-mode .text-yellow-800 {
+            color: #fde68a !important;
+        }
+        body.dark-mode .border-blue-500 {
+            border-color: #3b82f6 !important;
+        }
+        body.dark-mode .border-yellow-500 {
+            border-color: #eab308 !important;
+        }
+        /* Fix for logo in dark mode - make it visible */
+        body.dark-mode #logo-text {
+            background: linear-gradient(to right, #60a5fa, #a78bfa) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+        body.dark-mode #logo-underline {
+            background: linear-gradient(to right, #60a5fa, #a78bfa) !important;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="text-center mb-8 md:mb-12">
+            <div class="flex justify-between items-center mb-3 md:mb-4">
+                <div class="flex-1 flex gap-1 md:gap-2">
+                    <button onclick="toggleLanguage()" id="lang-toggle" class="px-3 md:px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all text-sm md:text-base font-medium" title="Switch Language">
+                        <span id="lang-icon">🌐</span> <span id="lang-text">EN</span>
+                    </button>
+                    <button onclick="toggleHistoryPanel()" class="px-3 md:px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-all text-sm md:text-base font-medium" title="View History">
+                        📚 <span data-i18n="history" class="hidden sm:inline">History</span>
+                    </button>
+                </div>
+                <div class="inline-block">
+                    <h1 class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2" id="logo-text">
+                        TopicFlow
+                    </h1>
+                    <div class="h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full" id="logo-underline"></div>
+                </div>
+                <div class="flex-1 flex justify-end">
+                    <button onclick="toggleDarkMode()" id="dark-mode-toggle" class="p-2 md:p-3 rounded-lg bg-gray-200 hover:bg-gray-300 transition-all" title="Toggle Dark Mode">
+                        <span id="dark-mode-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+            <p class="text-gray-600 mt-2 md:mt-4 text-sm md:text-lg" data-i18n="subtitle">AI-Powered Educational Assistant</p>
+            <p class="text-gray-500 text-xs md:text-sm mt-1 md:mt-2" data-i18n="description">Transform your study materials into summaries, quizzes, and flashcards</p>
+        </header>
+        
+        <!-- Tab Navigation -->
+        <nav class="mb-6 md:mb-8">
+            <div class="flex flex-wrap justify-center gap-1 md:gap-2 bg-white rounded-lg shadow-md p-1 md:p-2">
+                <button onclick="switchTab('material')" id="tab-material" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 bg-blue-600 text-white">
+                    📝 <span data-i18n="materialInput" class="hidden sm:inline">Material Input</span><span class="sm:hidden">Input</span>
+                </button>
+                <button onclick="switchTab('summarizer')" id="tab-summarizer" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
+                    📋 <span data-i18n="summarizer" class="hidden sm:inline">Summarizer</span><span class="sm:hidden">Summary</span>
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
+                    ❓ <span data-i18n="quiz" class="hidden sm:inline">Quiz Generator</span><span class="sm:hidden">Quiz</span>
+                </button>
+                <button onclick="switchTab('flashcard')" id="tab-flashcard" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
+                    🎴 <span data-i18n="flashcard">Flashcards</span>
+                </button>
+                <button onclick="switchTab('about')" id="tab-about" class="tab-button px-3 md:px-6 py-2 md:py-3 rounded-md text-xs md:text-base font-medium transition-all duration-200 text-gray-600 hover:bg-gray-100">
+                    ℹ️ <span data-i18n="about">About</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main>
+            <!-- Material Input Panel -->
+            <div id="panel-material" class="content-panel">
+                <div class="bg-white rounded-lg shadow-lg p-4 md:p-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4 flex items-center">
+                        <span class="text-3xl md:text-4xl mr-2 md:mr-3">📝</span>
+                        <span class="text-lg md:text-3xl">Enter Your Study Material</span>
+                    </h2>
+                    <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">Paste or type your study material below. This will be used to generate summaries, quizzes, and flashcards.</p>
+                    
+                    <div class="mb-4 md:mb-6">
+                        <label for="material-input" class="block text-sm font-medium text-gray-700 mb-2">
+                            Study Material
+                        </label>
+                        <textarea 
+                            id="material-input" 
+                            rows="8"
+                            class="w-full px-3 md:px-4 py-2 md:py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-sm md:text-base"
+                            placeholder="Enter your study material here... (e.g., lecture notes, textbook excerpts, study guides)"
+                        ></textarea>
+                        <p class="text-xs md:text-sm text-gray-500 mt-2">
+                            <span id="char-count">0</span> characters
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-4">
+                        <button 
+                            onclick="submitSummarizer()" 
+                            id="btn-summarize"
+                            disabled
+                            class="flex-1 min-w-full sm:min-w-[150px] bg-blue-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2">
+                            <span>📋</span> Generate Summary
+                        </button>
+                        <button 
+                            onclick="submitQuiz()" 
+                            id="btn-quiz"
+                            disabled
+                            class="flex-1 min-w-full sm:min-w-[150px] bg-purple-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2">
+                            <span>❓</span> Generate Quiz
+                        </button>
+                        <button 
+                            onclick="submitFlashcard()" 
+                            id="btn-flashcard"
+                            disabled
+                            class="flex-1 min-w-full sm:min-w-[150px] bg-pink-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium hover:bg-pink-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2">
+                            <span>🎴</span> Generate Flashcards
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summarizer Panel -->
+            <div id="panel-summarizer" class="content-panel hidden">
+                <div class="bg-white rounded-lg shadow-lg p-4 md:p-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4 flex items-center">
+                        <span class="text-3xl md:text-4xl mr-2 md:mr-3">📋</span>
+                        <span class="text-lg md:text-3xl">AI Summarizer</span>
+                    </h2>
+                    <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">Get a concise, bulleted summary of your study material.</p>
+                    
+                    <button 
+                        onclick="submitSummarizer()" 
+                        id="btn-summarize-2"
+                        disabled
+                        class="w-full bg-blue-600 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 mb-4 md:mb-6">
+                        Generate Summary
+                    </button>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading-summarizer" class="hidden text-center py-6 md:py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600 text-sm md:text-base">Generating summary...</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-summarizer" class="hidden bg-red-50 border-l-4 border-red-500 p-3 md:p-4 mb-4 md:mb-6 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <span class="text-xl md:text-2xl">⚠️</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-xs md:text-sm text-red-700" id="error-summarizer-text"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Container -->
+                    <div id="results-summarizer" class="hidden">
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 md:p-6 border-l-4 border-blue-500">
+                            <h3 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">Summary</h3>
+                            <div id="summary-content" class="prose prose-blue max-w-none text-sm md:text-base">
+                                <!-- Summary will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Panel -->
+            <div id="panel-quiz" class="content-panel hidden">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="text-4xl mr-3">❓</span>
+                        AI Quiz Generator
+                    </h2>
+                    <p class="text-gray-600 mb-6">Test your knowledge with AI-generated multiple-choice questions.</p>
+                    
+                    <button 
+                        onclick="submitQuiz()" 
+                        id="btn-quiz-2"
+                        disabled
+                        class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 mb-6">
+                        Generate Quiz
+                    </button>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading-quiz" class="hidden text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Generating quiz questions...</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-quiz" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <span class="text-2xl">⚠️</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700" id="error-quiz-text"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Container -->
+                    <div id="results-quiz" class="hidden">
+                        <div class="mb-4 flex items-center justify-between">
+                            <h3 class="text-xl font-semibold text-gray-800">Quiz Questions</h3>
+                            <span id="quiz-score" class="text-sm text-gray-600"></span>
+                        </div>
+                        <div id="quiz-content" class="space-y-6">
+                            <!-- Quiz questions will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flashcard Panel -->
+            <div id="panel-flashcard" class="content-panel hidden">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="text-4xl mr-3">🎴</span>
+                        AI Flashcard Maker
+                    </h2>
+                    <p class="text-gray-600 mb-6">Create interactive flashcards to memorize key terms and definitions.</p>
+                    
+                    <button 
+                        onclick="submitFlashcard()" 
+                        id="btn-flashcard-2"
+                        disabled
+                        class="w-full bg-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 mb-6">
+                        Generate Flashcards
+                    </button>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading-flashcard" class="hidden text-center py-8">
+                        <div class="spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Generating flashcards...</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="error-flashcard" class="hidden bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <span class="text-2xl">⚠️</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700" id="error-flashcard-text"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Container -->
+                    <div id="results-flashcard" class="hidden">
+                        <div class="mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">Flashcards</h3>
+                            <p class="text-sm text-gray-600">Click on a card to flip it</p>
+                        </div>
+                        <div id="flashcard-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Flashcards will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Panel -->
+            <div id="panel-about" class="content-panel hidden">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="text-4xl mr-3">ℹ️</span>
+                        About TopicFlow
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">What is TopicFlow?</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                TopicFlow is an AI-powered educational assistant designed to help students transform their study materials 
+                                into structured learning resources. Built for the AI Midterm Exam 2026, this application leverages 
+                                advanced AI technology to generate summaries, quizzes, and flashcards from any study material.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Features</h3>
+                            <ul class="space-y-2 text-gray-600">
+                                <li class="flex items-start">
+                                    <span class="text-blue-600 mr-2">📋</span>
+                                    <span><strong>AI Summarizer:</strong> Generate concise, bulleted summaries of your study materials</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-purple-600 mr-2">❓</span>
+                                    <span><strong>Quiz Generator:</strong> Create interactive multiple-choice quizzes with explanations</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-pink-600 mr-2">🎴</span>
+                                    <span><strong>Flashcard Maker:</strong> Extract key terms and definitions for memorization</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">How to Use</h3>
+                            <ol class="space-y-2 text-gray-600 list-decimal list-inside">
+                                <li>Enter your study material in the Material Input tab</li>
+                                <li>Choose which feature you want to use (Summary, Quiz, or Flashcards)</li>
+                                <li>Click the corresponding button to generate AI-powered content</li>
+                                <li>Review and interact with the generated content</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-700 rounded-lg p-6 border-l-4 border-blue-500">
+                            <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Developer Information</h3>
+                            <div class="space-y-3 text-gray-700 dark:text-gray-300">
+                                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                                    <p class="font-semibold text-blue-600 dark:text-blue-400">👨‍💻 Developer 1</p>
+                                    <p><strong>Name:</strong> M Rizki Agil Prakoso</p>
+                                </div>
+                                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                                    <p class="font-semibold text-purple-600 dark:text-purple-400">👨‍💻 Developer 2</p>
+                                    <p><strong>Name:</strong> Imam Agus Faisal</p>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-gray-300 dark:border-gray-600">
+                                    <p><strong>Project:</strong> AI Midterm Exam 2026</p>
+                                    <p><strong>Technology Stack:</strong> Python (Flask), Groq API, Tailwind CSS</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Technology</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                TopicFlow is built using modern web technologies including Python Flask for the backend, 
+                                Groq API (llama-3.1-8b-instant) for AI processing, and Tailwind CSS for a responsive, 
+                                beautiful user interface. The application follows best practices in web development and 
+                                AI integration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="mt-8 md:mt-12 text-center">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 md:p-6">
+                <p class="text-gray-600 dark:text-gray-400 font-medium text-sm md:text-base">TopicFlow - AI Midterm Exam 2026</p>
+                <p class="text-gray-500 dark:text-gray-500 text-xs md:text-sm mt-2">
+                    Developed by <strong class="text-blue-600 dark:text-blue-400">M Rizki Agil Prakoso</strong> & <strong class="text-purple-600 dark:text-purple-400">Imam Agus Faisal</strong>
+                </p>
+                <p class="text-gray-400 dark:text-gray-600 text-xs mt-2 md:mt-3">
+                    Powered by Groq API • Built with Flask & Tailwind CSS
+                </p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- History Panel (Hidden by default) -->
+    <div id="history-panel" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] md:max-h-[80vh] overflow-hidden">
+            <div class="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-200" data-i18n="historyTitle">📚 History</h2>
+                <div class="flex gap-2">
+                    <button onclick="clearHistory()" class="px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-xs md:text-sm">
+                        <span data-i18n="clearHistory">Clear All</span>
+                    </button>
+                    <button onclick="toggleHistoryPanel()" class="px-3 md:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all text-xs md:text-sm">
+                        ✕ <span data-i18n="close">Close</span>
+                    </button>
+                </div>
+            </div>
+            <div id="history-content" class="p-4 md:p-6 overflow-y-auto max-h-[calc(85vh-80px)] md:max-h-[60vh]">
+                <!-- History items will be inserted here -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
