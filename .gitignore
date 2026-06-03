@@ -67,3 +67,25 @@ node_modules/
 .pytest_cache/
 .mypy_cache/
 .hypothesis/
+
+# Documentation files (exclude from deployment)
+# Keep only: README.md, Procfile, railway.toml, run.bat, .gitignore
+ADVANCED_FEATURES.md
+ARCHITECTURE.md
+CHECKLIST_PRESENTASI.md
+DEPLOY_QUICK.md
+DEPLOYMENT.md
+ENHANCEMENTS.md
+FIX_ERROR.md
+FOLDER_STRUCTURE.txt
+PENJELASAN_UNTUK_DOSEN.md
+QUICKSTART.md
+RESTRUCTURE_NOTES.md
+STRUKTUR_FINAL.md
+SUMMARY_PERUBAHAN.md
+TROUBLESHOOTING.md
+UPDATE_STRUKTUR_FRONTEND.md
+USAGE_GUIDE.md
+
+# Kiro AI files
+.kiro/

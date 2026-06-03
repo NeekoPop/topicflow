@@ -26,8 +26,9 @@ from openai import OpenAI
 
 # Initialize Flask application
 app = Flask(__name__, 
-            static_folder='static',
-            template_folder='templates')
+            static_folder='../Frontend',
+            static_url_path='',
+            template_folder='../Frontend')
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
@@ -216,10 +217,7 @@ def index():
     """Serve the main application page."""
     return render_template('index.html')
 
-@app.route('/static/<path:path>')
-def serve_static(path):
-    """Serve static files from the static directory."""
-    return send_from_directory('static', path)
+# No need for separate static route - Flask handles it automatically
 
 @app.route('/api/summarize', methods=['POST', 'OPTIONS'])
 def summarize():

@@ -29,15 +29,16 @@ TopicFlow adalah aplikasi web berbasis AI yang membantu mahasiswa mengubah mater
 cd topicflow
 ```
 
-### 2. Install Dependencies
+### 2. Install Backend Dependencies
 
 ```bash
+cd Backend
 pip install -r requirements.txt
 ```
 
 ### 3. Konfigurasi API Key
 
-Buka file `.env` dan ganti placeholder dengan API key Groq Anda:
+Edit file `Backend/.env` dan ganti placeholder dengan API key Groq Anda:
 
 ```env
 GROQ_API_KEY=your_actual_groq_api_key_here
@@ -47,11 +48,19 @@ GROQ_API_KEY=your_actual_groq_api_key_here
 1. Kunjungi [console.groq.com](https://console.groq.com)
 2. Daftar atau login
 3. Buat API key baru
-4. Copy dan paste ke file `.env`
+4. Copy dan paste ke file `Backend/.env`
 
 ### 4. Jalankan Aplikasi
 
+**Windows:**
 ```bash
+# Dari root directory
+run.bat
+```
+
+**Linux/Mac:**
+```bash
+cd Backend
 python app.py
 ```
 
@@ -77,21 +86,29 @@ Aplikasi akan berjalan di `http://localhost:5000`
 
 ```
 topicflow/
-├── app.py                  # Backend Flask application
-├── requirements.txt        # Python dependencies
-├── .env                    # Environment variables (API key)
-├── .gitignore             # Git ignore rules
-├── README.md              # Dokumentasi ini
-├── templates/
-│   └── index.html         # Frontend HTML
-├── static/
-│   ├── css/
-│   │   └── style.css      # Custom CSS styles
-│   └── js/
-│       └── main.js        # Frontend JavaScript logic
-└── tests/
-    ├── test_api_key.py    # Unit tests untuk API key
-    └── test_ai_service.py # Unit tests untuk AI service
+├── Backend/                # Backend Application
+│   ├── app.py             # Flask REST API
+│   ├── requirements.txt   # Python dependencies
+│   ├── .env              # Environment variables (API key)
+│   ├── test_*.py         # Unit tests
+│   └── README.md         # Backend documentation
+│
+├── Frontend/              # Frontend Application
+│   ├── index.html        # Main HTML page
+│   ├── main.js          # JavaScript logic
+│   ├── style.css        # Custom styles
+│   └── README.md         # Frontend documentation
+│
+├── .gitignore            # Git ignore rules
+├── README.md             # Dokumentasi ini (main)
+├── Procfile              # Deployment config
+├── railway.toml          # Railway deployment
+├── run.bat               # Windows run script
+└── docs/                 # Documentation files
+    ├── QUICKSTART.md
+    ├── DEPLOYMENT.md
+    ├── TROUBLESHOOTING.md
+    └── USAGE_GUIDE.md
 ```
 
 ## 🧪 Testing
